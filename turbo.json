@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["VITE_WEBSOCKET_URL"],
+  "globalEnv": ["VITE_WEBSOCKET_URL", "PORT"],
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
