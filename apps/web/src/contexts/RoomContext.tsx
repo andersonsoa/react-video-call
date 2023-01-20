@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Socket, io } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { useQuery } from "../hooks/useQuery";
 import { useNavigate } from "react-router-dom";
 import { SocketBuilder } from "../lib/socketBuilder";
@@ -37,7 +37,9 @@ type TContext = {
 };
 
 const peerBuilder = new PeerBuilder();
-const socketBuilder = new SocketBuilder({ url: "http://localhost:4000" });
+const socketBuilder = new SocketBuilder({
+  url: import.meta.env.VITE_WEBSOCKET_URL,
+});
 
 const RoomContext = createContext({} as TContext);
 
