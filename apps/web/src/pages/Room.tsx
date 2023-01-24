@@ -9,17 +9,16 @@ import {
 import { Chat } from "../components/Chat";
 import { useRoom } from "../contexts/RoomContext";
 import { nanoid } from "nanoid";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { CanvasDrawer } from "../lib/util/utilities";
+import { PoseDetection } from "../lib/PoseDetection";
 
 export function Room() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState(false);
   const { roomId, room, user, myVideoRef, otherVideoRef } = useRoom();
 
   const guestId = useMemo(() => nanoid(), []);
-
-  console.log({
-    room,
-  });
 
   async function handleCopyToClipboard() {
     navigator.clipboard
@@ -31,6 +30,33 @@ export function Room() {
         setTimeout(() => setCopied(false), 1000);
       });
   }
+
+  async function rumPredictions() {
+    const size = {
+      width: 640,
+      height: 480,
+    };
+
+    if (
+      otherVideoRef.current &&
+      canvasRef.current &&
+      room?.owner.id === user?.id
+    ) {
+      const drawer = new CanvasDrawer({
+        canvas: canvasRef.current,
+        size,
+        scoreThreshold: 0.3,
+      });
+      const predictor = new PoseDetection({
+        drawer,
+        video: otherVideoRef.current,
+      });
+
+      predictor.start();
+    }
+  }
+
+  rumPredictions();
 
   return (
     <section className="flex w-full h-screen p-4 gap-6">
@@ -67,12 +93,18 @@ export function Room() {
 
         <main className="flex-1 flex h-[80vh]">
           <div className="flex-grow flex flex-col gap-4 justify-center items-center">
-            <div className="w-[550px] h-96 ring-2 relative">
+            <div className="ring-2 relative">
               <video
                 autoPlay
                 loop
-                className="w-full h-full m-0"
+                className="m-0"
                 ref={otherVideoRef}
+                style={{ width: 640, height: 480 }}
+              />
+              <canvas
+                className="absolute inset-0"
+                style={{ width: 640, height: 480 }}
+                ref={canvasRef}
               />
 
               <div className="absolute bottom-0 right-0 px-2 text-sm bg-zinc-900/75">

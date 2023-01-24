@@ -8,8 +8,8 @@ import React, {
 import { Socket } from "socket.io-client";
 import { useQuery } from "../hooks/useQuery";
 import { useNavigate } from "react-router-dom";
-import { SocketBuilder } from "../lib/socketBuilder";
-import { PeerBuilder } from "../lib/peerBuilder";
+import { PeerBuilder } from "../lib/PeerBuilder";
+import { SocketBuilder } from "../lib/SocketBuilder";
 
 type TMessage = {
   user: TMember;
@@ -31,14 +31,13 @@ type TContext = {
   room?: TRoom;
   roomId?: string;
   messages: TMessage[];
-  myVideoRef?: React.RefObject<HTMLVideoElement>;
-  otherVideoRef?: React.RefObject<HTMLVideoElement>;
+  myVideoRef: React.RefObject<HTMLVideoElement>;
+  otherVideoRef: React.RefObject<HTMLVideoElement>;
   sendMessage: (message: string) => void;
 };
 
-const peerBuilder = new PeerBuilder();
 const socketBuilder = new SocketBuilder({
-  url: import.meta.env.VITE_WEBSOCKET_URL,
+  url: import.meta.env.VITE_WEBSOCKET_URL ?? "http://localhost:4000",
 });
 
 const RoomContext = createContext({} as TContext);
@@ -84,13 +83,15 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
 
     const socket = socketBuilder
       .setOnUserConnect(async () => {
-        const { peerId, peer } = await peerBuilder.build();
+        const { peerId, peer } = await PeerBuilder.build();
 
         peer.on("call", (call) => {
           call.answer(streamRef.current);
 
-          call.on("stream", (guestStream) => {
-            otherVideoRef.current!.srcObject = guestStream;
+          call.on("stream", async (guestStream) => {
+            if (otherVideoRef.current) {
+              otherVideoRef.current!.srcObject = guestStream;
+            }
           });
         });
 
@@ -103,7 +104,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
           });
         }
 
-        socket.on("room-updated", (data: TRoom) => {
+        socket.on("room-updated", async (data: TRoom) => {
           setRoom(data);
 
           if (data.owner?.id === userId) {
@@ -112,6 +113,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
 
           if (data.guest?.id === userId) {
             setUser(data.guest);
+
             const callOwner = peer.call(data.owner.peerId, streamRef.current!);
 
             callOwner.on("stream", (ownerStream) => {
@@ -119,20 +121,23 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
             });
           }
         });
-
-        socket.on(
-          "message-recived",
-          (data: { message: string; user: TMember }) => {
-            setMessages((c) => [...c, data]);
-          },
-        );
       })
       .setOnUserDisconnect(() => {
         navigate("/");
       })
+      .setOnMessageRecived((data: { message: string; user: TMember }) => {
+        setMessages((c) => [...c, data]);
+      })
       .build();
 
     socketRef.current = socket;
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("room-updated");
+      socket.off("message-recived");
+    };
   }, [roomId, userId, navigate]);
 
   return (

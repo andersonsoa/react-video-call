@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tensorflow-models/pose-detection": "^2.0.0",
+    "@tensorflow/tfjs": "^4.2.0",
     "@types/simple-peer": "^9.11.5",
     "nanoid": "^4.0.0",
     "peerjs": "^1.4.7",

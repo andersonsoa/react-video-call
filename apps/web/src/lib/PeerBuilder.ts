@@ -1,9 +1,7 @@
 import Peer from "peerjs";
 
 export class PeerBuilder {
-  constructor() {}
-
-  build(): Promise<{ peer: Peer; peerId: string }> {
+  static build(): Promise<{ peer: Peer; peerId: string }> {
     return new Promise((resolve, reject) => {
       const peer = new Peer();
 
