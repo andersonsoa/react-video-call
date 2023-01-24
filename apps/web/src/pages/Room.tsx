@@ -13,7 +13,7 @@ import { useMemo, useRef, useState } from "react";
 import { CanvasDrawer } from "../lib/util/utilities";
 import { PoseDetection } from "../lib/PoseDetection";
 
-const baseURL = process.env.VITE_VERCEL_URL || "localhost:3000";
+const baseURL = import.meta.env.VITE_VERCEL_URL || "localhost:3000";
 
 export function Room() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
