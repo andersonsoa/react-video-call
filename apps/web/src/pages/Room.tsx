@@ -13,6 +13,11 @@ import { useMemo, useRef, useState } from "react";
 import { CanvasDrawer } from "../lib/util/utilities";
 import { PoseDetection } from "../lib/PoseDetection";
 
+const baseURL =
+  process.env.VERCEL_URL ||
+  process.env.VITE_VERCEL_URL ||
+  "http://localhost:3000";
+
 export function Room() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState(false);
@@ -22,9 +27,7 @@ export function Room() {
 
   async function handleCopyToClipboard() {
     navigator.clipboard
-      .writeText(
-        `http://localhost:3000/room?userId=${guestId}&roomId=${roomId}`,
-      )
+      .writeText(`${baseURL}/room?userId=${guestId}&roomId=${roomId}`)
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 1000);
@@ -75,7 +78,7 @@ export function Room() {
                 ) : null}
                 <>
                   <pre>
-                    <code>{`http://localhost:3000/room?userId=${guestId}&roomId=${roomId}`}</code>
+                    <code>{`${baseURL}/room?userId=${guestId}&roomId=${roomId}`}</code>
                   </pre>
                   <CopySimple />
                 </>
